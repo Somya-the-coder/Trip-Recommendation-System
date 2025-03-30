@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommender System Evaluation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .card-header {
+            background-color: #f1f8ff;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .visualization-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .visualization-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+        .tab-content {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+        }
+        .status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .status-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Recommender System Evaluation Dashboard</h1>
+
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button" role="tab" aria-controls="metrics" aria-selected="true">Evaluation Metrics</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="comparison-tab" data-bs-toggle="tab" data-bs-target="#comparison" type="button" role="tab" aria-controls="comparison" aria-selected="false">Method Comparison</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="tab-content" id="myTabContent">
+                <!-- Evaluation Metrics Tab -->
+                <div class="tab-pane fade show active" id="metrics" role="tabpanel" aria-labelledby="metrics-tab">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Evaluation Parameters</div>
+                                <div class="card-body">
+                                    <form id="evaluationForm">
+                                        <div class="mb-3">
+                                            <label for="k" class="form-label">Number of Recommendations (k)</label>
+                                            <input type="number" class="form-control" id="k" name="k" value="10" min="1" max="100">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="test_size" class="form-label">Test Set Size</label>
+                                            <input type="number" class="form-control" id="test_size" name="test_size" value="0.2" min="0.1" max="0.5" step="0.1">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Run Evaluation</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Status</div>
+                                <div class="card-body">
+                                    <div class="loading">
+                                        <div class="spinner-border loading-spinner text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">Running evaluation. This may take a few minutes...</p>
+                                    </div>
+                                    <div id="statusMessage" class="status-message"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4" id="metricsDisplay" style="display: none;">
+                        <!-- Recommendation Quality Metrics -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Recommendation Quality</div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">Precision</div>
+                                            <div class="metric-value" id="precision">-</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">Recall</div>
+                                            <div class="metric-value" id="recall">-</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">F1 Score</div>
+                                            <div class="metric-value" id="f1_score">-</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">NDCG</div>
+                                            <div class="metric-value" id="ndcg">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Coverage Metrics -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Coverage & Diversity</div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">User Coverage</div>
+                                            <div class="metric-value" id="user_coverage">-</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">Catalog Coverage</div>
+                                            <div class="metric-value" id="catalog_coverage">-</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">Diversity</div>
+                                            <div class="metric-value" id="diversity">-</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">Novelty</div>
+                                            <div class="metric-value" id="novelty">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Visualizations -->
+                    <div class="row" id="visualizationsDisplay" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Recommendation Quality Metrics</div>
+                                <div class="card-body">
+                                    <div class="visualization-container">
+                                        <img id="metricsVisualization" src="" alt="Recommendation Quality Metrics">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Coverage Metrics</div>
+                                <div class="card-body">
+                                    <div class="visualization-container">
+                                        <img id="coverageVisualization" src="" alt="Coverage Metrics">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-4">
+                            <div class="card">
+                                <div class="card-header">Diversity and Novelty</div>
+                                <div class="card-body">
+                                    <div class="visualization-container">
+                                        <img id="diversityNoveltyVisualization" src="" alt="Diversity and Novelty Metrics">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Method Comparison Tab -->
+                <div class="tab-pane fade" id="comparison" role="tabpanel" aria-labelledby="comparison-tab">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Comparison Parameters</div>
+                                <div class="card-body">
+                                    <form id="comparisonForm">
+                                        <div class="mb-3">
+                                            <label for="comparison_k" class="form-label">Number of Recommendations (k)</label>
+                                            <input type="number" class="form-control" id="comparison_k" name="k" value="10" min="1" max="100">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="num_users" class="form-label">Number of Users to Sample</label>
+                                            <input type="number" class="form-control" id="num_users" name="num_users" value="20" min="5" max="100">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Run Comparison</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Status</div>
+                                <div class="card-body">
+                                    <div class="loading comparison-loading">
+                                        <div class="spinner-border loading-spinner text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">Running comparison. This may take a few minutes...</p>
+                                    </div>
+                                    <div id="comparisonStatusMessage" class="status-message"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4" id="comparisonDisplay" style="display: none;">
+                        <!-- Method Comparison Metrics -->
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">Method Metrics</div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <div class="metric-label">Avg. Collaborative Recommendations</div>
+                                            <div class="metric-value" id="avg_collab_count">-</div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="metric-label">Avg. Content-Based Recommendations</div>
+                                            <div class="metric-value" id="avg_content_count">-</div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="metric-label">Avg. Hybrid Recommendations</div>
+                                            <div class="metric-value" id="avg_hybrid_count">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">Avg. Overlap Count</div>
+                                            <div class="metric-value" id="avg_overlap_count">-</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-label">Avg. Overlap Percentage</div>
+                                            <div class="metric-value" id="avg_overlap_pct">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comparison Visualizations -->
+                    <div class="row" id="comparisonVisualizationsDisplay" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Recommendation Counts by Method</div>
+                                <div class="card-body">
+                                    <div class="visualization-container">
+                                        <img id="methodCountsVisualization" src="" alt="Recommendation Counts by Method">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Jaccard Similarity Between Methods</div>
+                                <div class="card-body">
+                                    <div class="visualization-container">
+                                        <img id="jaccardSimilaritiesVisualization" src="" alt="Jaccard Similarity Between Methods">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for demonstration purposes
+const generateMockData = (k) => {
+    // Quality metrics
+    const precision = (Math.random() * 0.4 + 0.3).toFixed(3);
+    const recall = (Math.random() * 0.5 + 0.2).toFixed(3);
+    const f1 = (2 * precision * recall / (parseFloat(precision) + parseFloat(recall))).toFixed(3);
+    const ndcg = (Math.random() * 0.3 + 0.5).toFixed(3);
+    
+    // Coverage metrics
+    const userCoverage = (Math.random() * 0.2 + 0.7).toFixed(3);
+    const catalogCoverage = (Math.random() * 0.4 + 0.3).toFixed(3);
+    
+    // Diversity and novelty
+    const diversity = (Math.random() * 0.4 + 0.4).toFixed(3);
+    const novelty = (Math.random() * 0.3 + 0.5).toFixed(3);
+    
+    return {
+        precision,
+        recall,
+        f1_score: f1,
+        ndcg,
+        user_coverage: userCoverage,
+        catalog_coverage: catalogCoverage,
+        diversity,
+        novelty
+    };
+};
+
+// Mock data for method comparison
+const generateComparisonData = (k, numUsers) => {
+    const avgCollabCount = Math.floor(Math.random() * 3 + 5);
+    const avgContentCount = Math.floor(Math.random() * 3 + 3);
+    const avgHybridCount = k - avgCollabCount - avgContentCount;
+    const avgOverlapCount = Math.floor(Math.random() * 3 + 2);
+    const avgOverlapPct = ((avgOverlapCount / k) * 100).toFixed(1) + "%";
+    
+    return {
+        avg_collab_count: avgCollabCount,
+        avg_content_count: avgContentCount,
+        avg_hybrid_count: avgHybridCount,
+        avg_overlap_count: avgOverlapCount,
+        avg_overlap_pct: avgOverlapPct
+    };
+};
+
+// Generate mock chart URLs for visualizations
+const generateMockChartURLs = () => {
+    // In a real implementation, these would be dynamically generated charts
+    // For demo purposes, using placeholder images
+    return {
+        metricsChart: "/api/placeholder/600/400",
+        coverageChart: "/api/placeholder/600/400",
+        diversityNoveltyChart: "/api/placeholder/900/400",
+        methodCountsChart: "/api/placeholder/600/400",
+        jaccardSimilaritiesChart: "/api/placeholder/600/400"
+    };
+};
+
+// Update metrics display with values
+const updateMetricsDisplay = (data) => {
+    $("#precision").text(data.precision);
+    $("#recall").text(data.recall);
+    $("#f1_score").text(data.f1_score);
+    $("#ndcg").text(data.ndcg);
+    $("#user_coverage").text(data.user_coverage);
+    $("#catalog_coverage").text(data.catalog_coverage);
+    $("#diversity").text(data.diversity);
+    $("#novelty").text(data.novelty);
+    
+    // Show metrics display
+    $("#metricsDisplay").fadeIn();
+};
+
+// Update visualizations with chart URLs
+const updateVisualizationsDisplay = (chartURLs) => {
+    $("#metricsVisualization").attr("src", chartURLs.metricsChart);
+    $("#coverageVisualization").attr("src", chartURLs.coverageChart);
+    $("#diversityNoveltyVisualization").attr("src", chartURLs.diversityNoveltyChart);
+    
+    // Show visualizations display
+    $("#visualizationsDisplay").fadeIn();
+};
+
+// Update comparison metrics display
+const updateComparisonDisplay = (data) => {
+    $("#avg_collab_count").text(data.avg_collab_count);
+    $("#avg_content_count").text(data.avg_content_count);
+    $("#avg_hybrid_count").text(data.avg_hybrid_count);
+    $("#avg_overlap_count").text(data.avg_overlap_count);
+    $("#avg_overlap_pct").text(data.avg_overlap_pct);
+    
+    // Show comparison display
+    $("#comparisonDisplay").fadeIn();
+};
+
+// Update comparison visualizations
+const updateComparisonVisualizationsDisplay = (chartURLs) => {
+    $("#methodCountsVisualization").attr("src", chartURLs.methodCountsChart);
+    $("#jaccardSimilaritiesVisualization").attr("src", chartURLs.jaccardSimilaritiesChart);
+    
+    // Show comparison visualizations display
+    $("#comparisonVisualizationsDisplay").fadeIn();
+};
+
+// Show loading indicator and reset status message
+const showLoading = (isComparison = false) => {
+    if (isComparison) {
+        $(".comparison-loading").show();
+        $("#comparisonStatusMessage").text("").removeClass("error success");
+    } else {
+        $(".loading").show();
+        $("#statusMessage").text("").removeClass("error success");
+    }
+};
+
+// Hide loading indicator
+const hideLoading = (isComparison = false) => {
+    if (isComparison) {
+        $(".comparison-loading").hide();
+    } else {
+        $(".loading").hide();
+    }
+};
+
+// Show status message
+const showStatusMessage = (message, isError = false, isComparison = false) => {
+    const statusElement = isComparison ? $("#comparisonStatusMessage") : $("#statusMessage");
+    
+    statusElement.text(message);
+    if (isError) {
+        statusElement.addClass("error").removeClass("success");
+    } else {
+        statusElement.addClass("success").removeClass("error");
+    }
+};
+
+// Initialize the dashboard
+$(document).ready(function() {
+    // Handle evaluation form submission
+    $("#evaluationForm").on("submit", function(e) {
+        e.preventDefault();
+        
+        // Get form values
+        const k = parseInt($("#k").val());
+        const testSize = parseFloat($("#test_size").val());
+        
+        // Show loading indicator
+        showLoading();
+        
+        // Simulate API call delay
+        setTimeout(function() {
+            try {
+                // Generate mock data
+                const metricsData = generateMockData(k);
+                const chartURLs = generateMockChartURLs();
+                
+                // Update displays
+                updateMetricsDisplay(metricsData);
+                updateVisualizationsDisplay(chartURLs);
+                
+                // Show success message
+                showStatusMessage("Evaluation completed successfully!");
+                
+                // Hide loading indicator
+                hideLoading();
+            } catch (error) {
+                // Handle errors
+                hideLoading();
+                showStatusMessage("An error occurred: " + error.message, true);
+            }
+        }, 1500); // Simulate delay of 1.5 seconds
+    });
+    
+    // Handle comparison form submission
+    $("#comparisonForm").on("submit", function(e) {
+        e.preventDefault();
+        
+        // Get form values
+        const k = parseInt($("#comparison_k").val());
+        const numUsers = parseInt($("#num_users").val());
+        
+        // Show loading indicator
+        showLoading(true);
+        
+        // Simulate API call delay
+        setTimeout(function() {
+            try {
+                // Generate mock data
+                const comparisonData = generateComparisonData(k, numUsers);
+                const chartURLs = generateMockChartURLs();
+                
+                // Update displays
+                updateComparisonDisplay(comparisonData);
+                updateComparisonVisualizationsDisplay(chartURLs);
+                
+                // Show success message
+                showStatusMessage("Comparison completed successfully!", false, true);
+                
+                // Hide loading indicator
+                hideLoading(true);
+            } catch (error) {
+                // Handle errors
+                hideLoading(true);
+                showStatusMessage("An error occurred: " + error.message, true, true);
+            }
+        }, 2000); // Simulate delay of 2 seconds
+    });
+    
+    // Add tooltips for metrics (optional enhancement)
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Initialize with a message
+    showStatusMessage("Ready to evaluate recommender systems. Adjust parameters and click 'Run Evaluation'.");
+    showStatusMessage("Ready to compare recommendation methods. Adjust parameters and click 'Run Comparison'.", false, true);
+});
+    </script>
+</body>

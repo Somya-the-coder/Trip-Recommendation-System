@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tourist Recommendation System</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .recommendations { margin-top: 30px; }
+        .place-card { border: 1px solid #ddd; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        .error { color: #dc3545; padding: 10px; background: #f8d7da; border-radius: 4px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <h1>Tourist Recommendation System</h1>
+    <form action="/recommend" method="post">
+        <div class="form-group">
+            <label>User Type:</label>
+            <select name="user_type" id="userType" required>
+                <option value="new">New User</option>
+                <option value="existing">Existing User</option>
+            </select>
+        </div>
+        <div class="form-group user-id-group hidden">
+            <label>User ID:</label>
+            <input type="number" name="user_id" placeholder="Enter your user ID">
+        </div>
+        <div class="form-group">
+            <label>Your Interests:</label>
+            <input type="text" name="interests" placeholder="e.g., museums, hiking, beaches" required>
+        </div>
+        <button type="submit">Get Recommendations</button>
+    </form>
+
+    {% if error_message %}
+    <div class="error">
+        Error: {{ error_message }}
+    </div>
+    {% endif %}
+
+    <div class="recommendations">
+        {% if show_results %}
+            {% if recommendations %}
+            <h2>Recommended Places</h2>
+            {% for place in recommendations %}
+            <div class="place-card">
+                <h3>{{ place.title }}</h3>
+                <p><strong>Category:</strong> {{ place.category }}</p>
+                <p><strong>Rating:</strong> {{ "%.1f"|format(place.p_rating) }} ({{ place.count }} reviews)</p>
+                {% if place.tags %}<p><strong>Tags:</strong> {{ place.tags }}</p>{% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <p>No recommendations found. Please try different interests.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('userType').addEventListener('change', function() {
+            const userType = this.value;
+            const userIdGroup = document.querySelector('.user-id-group');
+            const userIdInput = userIdGroup.querySelector('input');
+
+            if (userType === 'existing') {
+                userIdGroup.classList.remove('hidden');
+                userIdInput.setAttribute('required', 'required');
+            } else {
+                userIdGroup.classList.add('hidden');
+                userIdInput.removeAttribute('required');
+                userIdInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
