@@ -1,24 +1,91 @@
-A Trip Recommendation System using:-
-1.ML -> recommendation_engine.py
-->data collection using web-scraping
-->data preprocessing
-  .Data Cleaning: This involves handling missing values, removing duplicates, correcting errors, and ensuring data consistency. 
-  .Data Transformation: This includes scaling, normalization, encoding categorical variables, and feature engineering. 
-    ..Scaling: Adjusting the range of numerical data to a specific scale (e.g., 0-1 or -1 to 1). 
-    ..Normalization: Transforming data to have a specific distribution (e.g., zero mean and unit variance). 
-    ..Encoding: Converting categorical data into a numerical format that machine learning algorithms can understand. 
-    ..Feature Engineering: Creating new features from existing ones to improve model performance. 
-  .Data Reduction: Selecting relevant features and reducing dimensionality to simplify analysis and improve model efficiency. 
-  .Feature Selection: Identifying and selecting the most relevant features for analysis. 
-  .Dimensionality Reduction: Techniques to reduce the number of variables while preserving important information. 
-  .Data Integration: Combining data from multiple sources into a single, coherent dataset. 
-  .Data Formatting: Ensuring consistent data types and structures. 
-  .Data Validation: Checking for errors and ensuring the processed data meets the model's requirements. 
-->content based filtering(new user)
-->collaborative filtering(Hybrid for existing user)
+..........................................................................................................................
+🧠 Machine Learning (ML) - recommendation_engine.py
 
-2.Backend- Flask(python)- app.py[mainly for routing]
+🔹 Data Collection
 
-3.Frontend- vanilla javascript
+Uses web scraping to gather trip-related data.
 
-4. Some python files to find confusion matrix of our KNN Model-> evaluation.py
+🔹 Data Preprocessing
+
+Data Cleaning:
+
+Handling missing values
+
+Removing duplicates
+
+Correcting errors
+
+Ensuring data consistency
+
+Data Transformation:
+
+Scaling: Adjusting numerical data to a specific range (e.g., 0-1 or -1 to 1)
+
+Normalization: Transforming data to have a specific distribution (zero mean, unit variance)
+
+Encoding: Converting categorical data into numerical format
+
+Feature Engineering: Creating new features to improve model performance
+
+Data Reduction:
+
+Feature Selection: Selecting the most relevant features
+
+Dimensionality Reduction: Reducing variables while preserving important information
+
+Data Integration:
+
+Merging data from multiple sources into a single dataset
+
+Data Formatting:
+
+Ensuring consistent data types and structures
+
+Data Validation:
+
+Checking for errors and ensuring compatibility with the model
+
+🔹 Recommendation Techniques
+
+Content-Based Filtering 🆕 (For New Users)
+
+Collaborative Filtering 🔄 (Hybrid for Existing Users)
+..........................................................................................................................
+
+🖥️ Backend - Flask (app.py)
+
+Handles API requests and routes data between the frontend and ML model.
+
+Provides endpoints for fetching recommendations.
+..........................................................................................................................
+
+🎨 Frontend - Vanilla JavaScript
+
+Uses HTML, CSS, and JavaScript to display recommendations.
+
+Fetches recommendations from the Flask backend using API calls.
+..........................................................................................................................
+
+📊 Evaluation - evaluation.py
+
+Computes the Confusion Matrix for the KNN Model.
+
+Evaluates the performance of the recommendation system.
+..........................................................................................................................
+
+💡 How to Run the Project?
+
+1️⃣ Clone the Repository
+
+git clone https://github.com/yourusername/trip-recommendation-system.git
+cd trip-recommendation-system
+
+2️⃣ Install Dependencies
+
+pip install -r requirements.txt
+
+3️⃣ Run the Flask Backend
+
+python backend/app.py
+
+4️⃣ Open frontend/index.html in Browser
