@@ -51,6 +51,7 @@ Checking for errors and ensuring compatibility with the model
 Content-Based Filtering 🆕 (For New Users)
 
 Collaborative Filtering 🔄 (Hybrid for Existing Users)
+
 ..........................................................................................................................
 
 🖥️ Backend - Flask (app.py)
@@ -58,6 +59,7 @@ Collaborative Filtering 🔄 (Hybrid for Existing Users)
 Handles API requests and routes data between the frontend and ML model.
 
 Provides endpoints for fetching recommendations.
+
 ..........................................................................................................................
 
 🎨 Frontend - Vanilla JavaScript
@@ -65,6 +67,7 @@ Provides endpoints for fetching recommendations.
 Uses HTML, CSS, and JavaScript to display recommendations.
 
 Fetches recommendations from the Flask backend using API calls.
+
 ..........................................................................................................................
 
 📊 Evaluation - evaluation.py
@@ -72,6 +75,7 @@ Fetches recommendations from the Flask backend using API calls.
 Computes the Confusion Matrix for the KNN Model.
 
 Evaluates the performance of the recommendation system.
+
 ..........................................................................................................................
 
 💡 How to Run the Project?
